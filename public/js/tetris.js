@@ -4,7 +4,7 @@ $(function() {
     alert("You must use a browser that supports HTML5 Canvas to run this demo.");
 
   function start() {
-    var tetrisRef = new Firebase("https://INSTANCE.firebaseio.com/tetris");
+    var tetrisRef = firebase.database().ref();
     var tetrisController = new Tetris.Controller(tetrisRef);
   }
 
