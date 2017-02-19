@@ -1,14 +1,14 @@
-$(function() {
+$(function () {
   var canvas = $("#canvas0").get(0);
   if (!canvas || !canvas.getContext || !canvas.getContext("2d"))
     alert("You must use a browser that supports HTML5 Canvas to run this demo.");
 
   function start() {
-    var tetrisRef = firebase.database().ref();
+    var tetrisRef = firebase.database().ref('tetris');
     var tetrisController = new Tetris.Controller(tetrisRef);
   }
 
-  var Tetris = { };
+  var Tetris = {};
 
 
   /**
@@ -22,34 +22,36 @@ $(function() {
   Tetris.BOARD_WIDTH_PIXELS = Tetris.BOARD_WIDTH * Tetris.BLOCK_SIZE_PIXELS;
 
   Tetris.BLOCK_BORDER_COLOR = "#484848";
-  Tetris.BLOCK_COLORS = { "X": "black", "b": "cyan", "B": "blue", "O": "orange",
-                          "Y": "yellow", "G": "green", "P": "#9370D8", "R": "red" };
+  Tetris.BLOCK_COLORS = {
+    "X": "black", "b": "cyan", "B": "blue", "O": "orange",
+    "Y": "yellow", "G": "green", "P": "#9370D8", "R": "red"
+  };
 
   Tetris.GRAVITY_DELAY = 300; // 300ms
 
-  Tetris.EMPTY_LINE  = "          ";
+  Tetris.EMPTY_LINE = "          ";
   Tetris.FILLED_LINE = "XXXXXXXXXX";
   Tetris.COMPLETE_LINE_PATTERN = /[^ ]{10}/;
 
   // Pieces.  (Indexed by piece rotation (0-3), row (0-3), piece number (0-6))
   Tetris.PIECES = [];
   for (var i = 0; i < 4; i++) { Tetris.PIECES[i] = []; }
-  Tetris.PIECES[0][0] = [ "    ",   "    ",   "    ",   "    ",   "    ",   "    ",   "    " ];
-  Tetris.PIECES[0][1] = [ "    ",   "B   ",   "  O ",   " YY ",   " GG ",   " P  ",   "RR  " ];
-  Tetris.PIECES[0][2] = [ "bbbb",   "BBB ",   "OOO ",   " YY ",   "GG  ",   "PPP ",   " RR " ];
-  Tetris.PIECES[0][3] = [ "    ",   "    ",   "    ",   "    ",   "    ",   "    ",   "    " ];
-  Tetris.PIECES[1][0] = [ " b  ",   "    ",   "    ",   "    ",   "    ",   "    ",   "  R " ];
-  Tetris.PIECES[1][1] = [ " b  ",   " B  ",   "OO  ",   " YY ",   " G  ",   " P  ",   " RR " ];
-  Tetris.PIECES[1][2] = [ " b  ",   " B  ",   " O  ",   " YY ",   " GG ",   " PP ",   " R  " ];
-  Tetris.PIECES[1][3] = [ " b  ",   "BB  ",   " O  ",   "    ",   "  G ",   " P  ",   "    " ];
-  Tetris.PIECES[2][0] = [ "    ",   "    ",   "    ",   "    ",   "    ",   "    ",   "    " ];
-  Tetris.PIECES[2][1] = [ "    ",   "    ",   "    ",   " YY ",   " GG ",   "    ",   "RR  " ];
-  Tetris.PIECES[2][2] = [ "bbbb",   "BBB ",   "OOO ",   " YY ",   "GG  ",   "PPP ",   " RR " ];
-  Tetris.PIECES[2][3] = [ "    ",   "  B ",   "O   ",   "    ",   "    ",   " P  ",   "    " ];
-  Tetris.PIECES[3][0] = [ " b  ",   "    ",   "    ",   "    ",   "    ",   "    ",   "  R " ];
-  Tetris.PIECES[3][1] = [ " b  ",   " BB ",   " O  ",   " YY ",   " G  ",   " P  ",   " RR " ];
-  Tetris.PIECES[3][2] = [ " b  ",   " B  ",   " O  ",   " YY ",   " GG ",   "PP  ",   " R  " ];
-  Tetris.PIECES[3][3] = [ " b  ",   " B  ",   " OO ",   "    ",   "  G ",   " P  ",   "    " ];
+  Tetris.PIECES[0][0] = ["    ", "    ", "    ", "    ", "    ", "    ", "    "];
+  Tetris.PIECES[0][1] = ["    ", "B   ", "  O ", " YY ", " GG ", " P  ", "RR  "];
+  Tetris.PIECES[0][2] = ["bbbb", "BBB ", "OOO ", " YY ", "GG  ", "PPP ", " RR "];
+  Tetris.PIECES[0][3] = ["    ", "    ", "    ", "    ", "    ", "    ", "    "];
+  Tetris.PIECES[1][0] = [" b  ", "    ", "    ", "    ", "    ", "    ", "  R "];
+  Tetris.PIECES[1][1] = [" b  ", " B  ", "OO  ", " YY ", " G  ", " P  ", " RR "];
+  Tetris.PIECES[1][2] = [" b  ", " B  ", " O  ", " YY ", " GG ", " PP ", " R  "];
+  Tetris.PIECES[1][3] = [" b  ", "BB  ", " O  ", "    ", "  G ", " P  ", "    "];
+  Tetris.PIECES[2][0] = ["    ", "    ", "    ", "    ", "    ", "    ", "    "];
+  Tetris.PIECES[2][1] = ["    ", "    ", "    ", " YY ", " GG ", "    ", "RR  "];
+  Tetris.PIECES[2][2] = ["bbbb", "BBB ", "OOO ", " YY ", "GG  ", "PPP ", " RR "];
+  Tetris.PIECES[2][3] = ["    ", "  B ", "O   ", "    ", "    ", " P  ", "    "];
+  Tetris.PIECES[3][0] = [" b  ", "    ", "    ", "    ", "    ", "    ", "  R "];
+  Tetris.PIECES[3][1] = [" b  ", " BB ", " O  ", " YY ", " G  ", " P  ", " RR "];
+  Tetris.PIECES[3][2] = [" b  ", " B  ", " O  ", " YY ", " GG ", "PP  ", " R  "];
+  Tetris.PIECES[3][3] = [" b  ", " B  ", " OO ", "    ", "  G ", " P  ", "    "];
 
 
 
@@ -64,7 +66,7 @@ $(function() {
 
     // Listen for changes to our board.
     var self = this;
-    playerRef.on("value", function(snapshot) {
+    playerRef.on("value", function (snapshot) {
       self.snapshot = snapshot;
       self.draw();
     });
@@ -286,7 +288,7 @@ $(function() {
 
   Tetris.Board.prototype.setBlockVal = function (x, y, val) {
     var rowContents = this.getRow(y);
-    rowContents = rowContents.substring(0, x) + val + rowContents.substring(x+1);
+    rowContents = rowContents.substring(0, x) + val + rowContents.substring(x + 1);
     this.setRow(y, rowContents);
   };
 
@@ -324,7 +326,7 @@ $(function() {
    * Writes the current piece data into Firebase.
    */
   Tetris.Piece.prototype.writeToFirebase = function (pieceRef) {
-    pieceRef.set({pieceNum: this.pieceNum, x: this.x, y: this.y, rotation: this.rotation});
+    pieceRef.set({ pieceNum: this.pieceNum, x: this.x, y: this.y, rotation: this.rotation });
   };
 
 
@@ -364,7 +366,7 @@ $(function() {
 
   Tetris.Controller.prototype.createBoards = function () {
     this.boards = [];
-    for(var i = 0; i <= 1; i++) {
+    for (var i = 0; i <= 1; i++) {
       var playerRef = this.tetrisRef.child("player" + i);
       var canvas = $("#canvas" + i).get(0);
       this.boards.push(new Tetris.Board(canvas, playerRef));
@@ -372,17 +374,17 @@ $(function() {
   };
 
 
-  Tetris.Controller.prototype.waitToJoin = function() {
+  Tetris.Controller.prototype.waitToJoin = function () {
     var self = this;
 
     // Listen on "online" location for player0 and player1.
-    this.tetrisRef.child("player0/online").on("value", function(onlineSnap) {
+    this.tetrisRef.child("player0/online").on("value", function (onlineSnap) {
       if (onlineSnap.val() === null && self.playingState === Tetris.PlayingState.Watching) {
         self.tryToJoin(0);
       }
     });
 
-    this.tetrisRef.child("player1/online").on("value", function(onlineSnap) {
+    this.tetrisRef.child("player1/online").on("value", function (onlineSnap) {
       if (onlineSnap.val() === null && self.playingState === Tetris.PlayingState.Watching) {
         self.tryToJoin(1);
       }
@@ -393,19 +395,19 @@ $(function() {
   /**
    * Try to join the game as the specified playerNum.
    */
-  Tetris.Controller.prototype.tryToJoin = function(playerNum) {
+  Tetris.Controller.prototype.tryToJoin = function (playerNum) {
     // Set ourselves as joining to make sure we don't try to join as both players. :-)
     this.playingState = Tetris.PlayingState.Joining;
 
     // Use a transaction to make sure we don't conflict with other people trying to join.
     var self = this;
-    this.tetrisRef.child("player" + playerNum + "/online").transaction(function(onlineVal) {
+    this.tetrisRef.child("player" + playerNum + "/online").transaction(function (onlineVal) {
       if (onlineVal === null) {
         return true; // Try to set online to true.
       } else {
         return; // Somebody must have beat us.  Abort the transaction.
       }
-    }, function(error, committed) {
+    }, function (error, committed) {
       if (committed) { // We got in!
         self.playingState = Tetris.PlayingState.Playing;
         self.startPlaying(playerNum);
@@ -449,13 +451,13 @@ $(function() {
   };
 
 
-  Tetris.Controller.prototype.initializePiece = function() {
+  Tetris.Controller.prototype.initializePiece = function () {
     this.fallingPiece = null;
     var pieceRef = this.myPlayerRef.child("piece");
     var self = this;
 
     // Watch for changes to the current piece (and initialize it if it's null).
-    pieceRef.on("value", function(snapshot) {
+    pieceRef.on("value", function (snapshot) {
       if (snapshot.val() === null) {
         var newPiece = new Tetris.Piece();
         newPiece.writeToFirebase(pieceRef);
@@ -476,7 +478,7 @@ $(function() {
         return; // piece isn't initialized yet.
 
       var keyCode = evt.which;
-      var key = { space:32, left:37, up:38, right:39, down:40 };
+      var key = { space: 32, left: 37, up: 38, right: 39, down: 40 };
 
       var newPiece = null;
       switch (keyCode) {
@@ -530,7 +532,7 @@ $(function() {
     }
 
     var self = this;
-    this.gravityIntervalId = setInterval(function() {
+    this.gravityIntervalId = setInterval(function () {
       self.doGravity();
     }, Tetris.GRAVITY_DELAY);
   };
@@ -570,7 +572,7 @@ $(function() {
   Tetris.Controller.prototype.watchForExtraRows = function () {
     var self = this;
     var extraRowsRef = this.myPlayerRef.child("extrarows");
-    extraRowsRef.on("child_added", function(snapshot) {
+    extraRowsRef.on("child_added", function (snapshot) {
       var rows = snapshot.val();
       extraRowsRef.child(snapshot.key()).remove();
 
@@ -593,7 +595,7 @@ $(function() {
   Tetris.Controller.prototype.watchForRestart = function () {
     var self = this;
     var restartRef = this.myPlayerRef.child("restart");
-    restartRef.on("value", function(snap) {
+    restartRef.on("value", function (snap) {
       if (snap.val() === 1) {
         restartRef.set(0);
         self.resetMyBoardAndPiece();
